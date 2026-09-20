@@ -142,6 +142,15 @@ idle once more. No card required, and it costs nothing either way.
 
 ## Known limitations of the EA data layer
 
+- Each club now has its own real URL: `/club/<id>?platform=...`. Clicking a
+  search result or favorite opens it in a new tab, and that link is
+  shareable/bookmarkable on its own — it no longer relies on in-page state.
+- If a section (overview stats, playoff achievements, roster, matches)
+  shows an amber "couldn't load X" message, open that same club link with
+  `&debug=1` added to the end and check "Show raw API response" — that
+  shows exactly what EA returned, which is the fastest way to tell me
+  what's wrong so I can fix the field mapping.
+
 - `overallStats`, `playoffAchievements`, and `members/career/stats` endpoints
   are based on community reports, not confirmed against a live response yet.
   If EA doesn't actually expose them at these exact paths, those sections

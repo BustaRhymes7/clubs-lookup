@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   --bg: #0b0e14;
   --bg-elevated: #12161f;
   --card: #151a25;
@@ -110,6 +111,11 @@ button {
   border-color: var(--accent);
 }
 
+.platformSelect option {
+  background: var(--card);
+  color: var(--text);
+}
+
 .searchForm {
   display: flex;
   gap: 10px;
@@ -193,6 +199,8 @@ button {
   padding: 16px 18px;
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
   transition: border-color 0.15s ease, transform 0.1s ease;
 }
 
