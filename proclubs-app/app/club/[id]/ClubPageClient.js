@@ -12,9 +12,12 @@ import {
   Stat,
   SectionStatus,
   MatchRow,
-  MembersTable,
+  SquadSection,
+  computeForm,
+  FormStrip,
   extractRecord,
   extractList,
+  extractMembers,
   ClubSkeleton,
 } from "../../components/ClubDisplay";
 
@@ -74,10 +77,11 @@ export default function ClubPageClient({ clubId }) {
   const infoRecord = extractRecord(club?.info?.data, clubId);
   const displayName = infoRecord?.name ?? nameParam ?? "Club";
   const statsRecord = extractRecord(club?.overallStats?.data, clubId) || infoRecord;
-  const memberList = extractList(club?.members?.data);
+  const memberList = extractMembers(club?.members?.data);
   const matchList = extractList(club?.matches?.data);
   const achievements = extractList(club?.playoffAchievements?.data);
   const platformLabel = PLATFORM_OPTIONS.find((p) => p.value === platform)?.label;
+  const form = computeForm(matchList, clubId);
 
   function handleToggleFavorite() {
     toggleFavorite({ clubId, platform, name: displayName });
@@ -143,22 +147,39 @@ export default function ClubPageClient({ clubId }) {
                     <Stat label="Ties" value={statsRecord?.ties} />
                     <Stat label="Skill rating" value={statsRecord?.skillRating} />
                     <Stat label="Games played" value={statsRecord?.gamesPlayed} />
-                    <Stat label="Division" value={statsRecord?.division} />
-                    <Stat label="Titles won" value={statsRecord?.titlesWon} />
+                    <Stat label="Playoff games" value={statsRecord?.gamesPlayedPlayoff} />
+                    <Stat label="Goals" value={statsRecord?.goals} />
+                    <Stat label="Goals against" value={statsRecord?.goalsAgainst} />
+                    <Stat label="Best division" value={statsRecord?.bestDivision} />
+                    <Stat label="Best finish" value={statsRecord?.bestFinishGroup} />
                     <Stat label="Promotions" value={statsRecord?.promotions} />
                     <Stat label="Relegations" value={statsRecord?.relegations} />
                   </div>
-                  <SectionStatus section={club.overallStats} label="overall stats" />
+                  {!club.overallStats?.ok && (
+                    <SectionStatus section={club.overallStats} label="overall stats" />
+                  )}
 
-                  <p className="sectionTitle display">PLAYOFF ACHIEVEMENTS</p>
+                  <FormStrip form={form} />
+
+                  <p className="sectionTitle display" style={{ marginTop: 28 }}>
+                    TOP PERFORMERS &amp; SQUAD
+                  </p>
+                  {memberList && memberList.length > 0 ? (
+                    <SquadSection members={memberList} />
+                  ) : (
+                    <SectionStatus section={club.members} label="roster stats" />
+                  )}
+
+                  <p className="sectionTitle display" style={{ marginTop: 28 }}>
+                    PLAYOFF ACHIEVEMENTS
+                  </p>
                   {achievements && achievements.length > 0 ? (
                     <ul className="achievementList">
                       {achievements.map((a, i) => (
                         <li key={i}>
-                          {a?.titleName ?? a?.name ?? "Achievement"}
-                          {a?.timestamp
-                            ? ` — ${new Date(a.timestamp * 1000).toLocaleDateString()}`
-                            : ""}
+                          {a?.seasonName ?? "Season"}
+                          {a?.finishLabel ? ` — ${a.finishLabel}` : ""}
+                          {a?.divisionLabel ? ` (${a.divisionLabel})` : ""}
                         </li>
                       ))}
                     </ul>
@@ -197,16 +218,6 @@ export default function ClubPageClient({ clubId }) {
                       label="matches"
                       fallback={`No recent ${matchType.replace("Match", "").toLowerCase()} matches returned.`}
                     />
-                  )}
-                </>
-              )}
-
-              {tab === "roster" && (
-                <>
-                  {memberList && memberList.length > 0 ? (
-                    <MembersTable members={memberList} />
-                  ) : (
-                    <SectionStatus section={club.members} label="roster stats" />
                   )}
                 </>
               )}

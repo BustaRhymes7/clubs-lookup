@@ -142,6 +142,14 @@ idle once more. No card required, and it costs nothing either way.
 
 ## Known limitations of the EA data layer
 
+- The club page is now one continuous flow: stats → form (last 5 league
+  results) → podium (top 3 by average rating) → full squad (tap a name for
+  their stats, or "Compare players" to pick two and see them side by side).
+  Matches stay on their own tab. Roster is no longer a separate tab — it's
+  folded into Overview.
+- The podium only appears once at least 3 players have a recorded average
+  rating — with fewer, there's nothing to rank yet.
+
 - Each club now has its own real URL: `/club/<id>?platform=...`. Clicking a
   search result or favorite opens it in a new tab, and that link is
   shareable/bookmarkable on its own — it no longer relies on in-page state.
@@ -150,6 +158,11 @@ idle once more. No card required, and it costs nothing either way.
   `&debug=1` added to the end and check "Show raw API response" — that
   shows exactly what EA returned, which is the fastest way to tell me
   what's wrong so I can fix the field mapping.
+- Roster and playoff-achievements field names/endpoints are now confirmed
+  against a real, actively-maintained third-party SDK's source code (not
+  guessed) — `members/stats` returns `{ members: [...], positionCount }`,
+  and `club/playoffAchievements` takes `clubId` (singular), unlike every
+  other per-club endpoint here which take `clubIds` (plural).
 
 - `overallStats`, `playoffAchievements`, and `members/career/stats` endpoints
   are based on community reports, not confirmed against a live response yet.

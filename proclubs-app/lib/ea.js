@@ -79,7 +79,10 @@ export function getOverallStats(clubId, platform = DEFAULT_PLATFORM) {
 
 export function getPlayoffAchievements(clubId, platform = DEFAULT_PLATFORM) {
   const p = normalizePlatform(platform);
-  return eaFetch(`/club/playoffAchievements?platform=${p}&clubIds=${clubId}`);
+  // NOTE: this endpoint takes clubId (singular) - unlike every other
+  // per-club endpoint here, which take clubIds (plural). Confirmed against
+  // EA's actual query param naming; using clubIds here 400s.
+  return eaFetch(`/club/playoffAchievements?platform=${p}&clubId=${clubId}`);
 }
 
 export function getClubMatches(clubId, matchType = "leagueMatch", platform = DEFAULT_PLATFORM) {
