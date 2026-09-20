@@ -63,6 +63,7 @@ export default function Home() {
   const [tab, setTab] = useState("overview");
   const [matchType, setMatchType] = useState("leagueMatch");
   const [showRaw, setShowRaw] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
   const [fetchedAt, setFetchedAt] = useState(null);
   const [fieldError, setFieldError] = useState("");
   const [favorites, setFavorites] = useState([]);
@@ -77,6 +78,12 @@ export default function Home() {
 
   useEffect(() => {
     setFavorites(getFavorites());
+    // Hidden debug mode - append ?debug=1 to the URL to see raw API
+    // responses and technical error details. Regular visitors never see
+    // this; it's for troubleshooting when EA's response shape changes.
+    if (typeof window !== "undefined") {
+      setDebugMode(new URLSearchParams(window.location.search).get("debug") === "1");
+    }
   }, []);
 
   function handleToggleFavorite() {
@@ -207,7 +214,7 @@ export default function Home() {
             </button>
           </form>
 
-          {error && <ErrorNotice message={error} technical={technicalError} showDetails={showErrorDetails} onToggleDetails={() => setShowErrorDetails((v) => !v)} />}
+          {error && <ErrorNotice message={error} technical={debugMode ? technicalError : ""} showDetails={showErrorDetails} onToggleDetails={() => setShowErrorDetails((v) => !v)} />}
 
           {status === "searching" && <SearchSkeleton />}
 
@@ -280,7 +287,7 @@ export default function Home() {
             ← New search
           </button>
 
-          {error && <ErrorNotice message={error} technical={technicalError} showDetails={showErrorDetails} onToggleDetails={() => setShowErrorDetails((v) => !v)} />}
+          {error && <ErrorNotice message={error} technical={debugMode ? technicalError : ""} showDetails={showErrorDetails} onToggleDetails={() => setShowErrorDetails((v) => !v)} />}
 
           <div className="clubHeader">
             <div className="clubHeaderRow">
@@ -382,11 +389,15 @@ export default function Home() {
         </>
       )}
 
-      <button className="backLink" style={{ marginTop: 24 }} onClick={() => setShowRaw((v) => !v)}>
-        {showRaw ? "Hide" : "Show"} raw API response (for debugging)
-      </button>
-      {showRaw && (
-        <pre className="rawBox">{JSON.stringify(club ?? results ?? {}, null, 2)}</pre>
+      {debugMode && (
+        <>
+          <button className="backLink" style={{ marginTop: 24 }} onClick={() => setShowRaw((v) => !v)}>
+            {showRaw ? "Hide" : "Show"} raw API response (debug mode)
+          </button>
+          {showRaw && (
+            <pre className="rawBox">{JSON.stringify(club ?? results ?? {}, null, 2)}</pre>
+          )}
+        </>
       )}
 
       <p className="disclaimer">
@@ -419,7 +430,7 @@ function SectionStatus({ section, label, fallback }) {
   if (!section) return null;
   if (section.ok) return <p className="status">{fallback ?? `No ${label} returned.`}</p>;
   return (
-    <p className="status" style={{ color: "#e8a33d" }}>
+    <p className="status" style={{ color: "#ffb020" }}>
       Couldn't load {label}: this endpoint may not be confirmed yet ({section.error}).
     </p>
   );
@@ -446,7 +457,7 @@ function MatchRow({ match }) {
     <div>
       <button
         className="matchRow"
-        style={{ width: "100%", cursor: "pointer", border: "1px solid #245640" }}
+        style={{ width: "100%", cursor: "pointer", border: "1.5px solid #262c3d" }}
         onClick={() => setExpanded((v) => !v)}
       >
         <span>
@@ -493,7 +504,7 @@ function PlayerStatsTable({ teamName, players }) {
   }
   return (
     <div style={{ overflowX: "auto", marginBottom: 10 }}>
-      <p style={{ fontSize: 12, color: "#9db8a8", margin: "8px 0 4px" }}>{teamName}</p>
+      <p style={{ fontSize: 12, color: "#8b93a7", margin: "8px 0 4px" }}>{teamName}</p>
       <table className="dataTable">
         <thead>
           <tr>

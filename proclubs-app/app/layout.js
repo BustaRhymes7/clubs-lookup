@@ -1,10 +1,10 @@
-import { Oswald, Inter } from "next/font/google";
+import { Space_Grotesk, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Footer from "./components/Footer";
 import CookieBanner from "./components/CookieBanner";
 
-const oswald = Oswald({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-display",
@@ -12,7 +12,7 @@ const oswald = Oswald({
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
 });
 
@@ -47,7 +47,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0f3d2e",
+  themeColor: "#0b0e14",
   width: "device-width",
   initialScale: 1,
 };
@@ -55,7 +55,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${oswald.variable} ${inter.variable}`}>
+      <body className={`${spaceGrotesk.variable} ${inter.variable}`}>
         {children}
         <Footer />
         <CookieBanner />

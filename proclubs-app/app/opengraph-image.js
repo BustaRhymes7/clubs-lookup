@@ -16,19 +16,19 @@ export default async function OGImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px",
-          background: "#0a2b20",
-          color: "#f4f1ea",
+          background: "#0b0e14",
+          color: "#f5f7fa",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ fontSize: 28, color: "#e8a33d", letterSpacing: 4, display: "flex" }}>
-          PRO CLUBS · LIVE FROM EA
+        <div style={{ fontSize: 26, color: "#22e584", fontWeight: 700, letterSpacing: 2, display: "flex" }}>
+          ⚽ UNOFFICIAL FAN PROJECT
         </div>
-        <div style={{ fontSize: 96, fontWeight: 700, marginTop: 20, display: "flex" }}>
+        <div style={{ fontSize: 100, fontWeight: 700, marginTop: 20, display: "flex" }}>
           Clubs Lookup
         </div>
-        <div style={{ fontSize: 32, color: "#9db8a8", marginTop: 24, display: "flex", maxWidth: 900 }}>
-          Club stats, match history &amp; full player breakdowns — live.
+        <div style={{ fontSize: 30, color: "#8b93a7", marginTop: 24, display: "flex", maxWidth: 900 }}>
+          Club stats, match history &amp; full player breakdowns — live from EA.
         </div>
       </div>
     ),

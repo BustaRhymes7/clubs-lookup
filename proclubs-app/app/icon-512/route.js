@@ -12,16 +12,16 @@ export async function GET() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0f3d2e",
+          background: "#0b0e14",
         }}
       >
         <div
           style={{
             width: 360,
             height: 360,
-            borderRadius: 180,
-            background: "#f4f1ea",
-            border: "16px solid #e8a33d",
+            borderRadius: 90,
+            background: "#151a25",
+            border: "14px solid #22e584",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

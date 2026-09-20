@@ -74,6 +74,34 @@ From then on, any time you want to update the site: change files in the
 GitHub repo (or send me the changes to make), and Vercel automatically
 redeploys within a minute or two. No servers to manage.
 
+## Deploying to Render instead
+
+Same GitHub repo, different host — about 5 minutes.
+
+1. Go to [render.com](https://render.com) and sign up with **"Continue with
+   GitHub"**.
+2. Click **New +** → **Web Service**.
+3. Find and select your `clubs-lookup` repo, click **Connect**.
+4. Fill in:
+   - **Name:** `clubs-lookup` (or anything)
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm run start`
+   - **Instance Type:** **Free**
+5. Click **Create Web Service**. First deploy takes a few minutes — Render
+   shows live logs while it builds.
+6. Once live, you'll get a URL like `clubs-lookup.onrender.com`. Copy it.
+7. Go to the **Environment** tab → **Add Environment Variable**:
+   - Key: `NEXT_PUBLIC_SITE_URL`
+   - Value: `https://clubs-lookup.onrender.com` (your actual URL from step 6)
+   - Save — this triggers a redeploy automatically. Without this, the
+     share-preview image and sitemap will point at the wrong address.
+8. Test it the same way: search a real club, check for the 403.
+
+**The free-tier trade-off:** Render's free web services spin down after
+about 15 minutes with no visitors. The next person to open the link waits
+30-50 seconds for it to wake back up, then it's fast again until it goes
+idle once more. No card required, and it costs nothing either way.
+
 ## Before you share the link — 2 things to fill in
 
 **1. Your real contact email.** I didn't invent an address — open
