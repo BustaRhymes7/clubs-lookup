@@ -1,0 +1,7 @@
+One file also needs to be DELETED from your repo (not replaced):
+
+  app/contact/page.js
+
+This zip only contains files to be added/replaced. On GitHub, open
+app/contact/page.js, click the trash-can/delete icon, and commit
+the deletion.
