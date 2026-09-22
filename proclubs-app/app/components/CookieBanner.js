@@ -3,39 +3,38 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-// This site's analytics (Vercel Analytics) is cookieless, so this banner
-// isn't strictly required for that alone - it's here as a trust signal and
-// in case cookie-based tools get added later. Dismissal is remembered via
-// localStorage, not a cookie.
+const KEY = "clubslookup:cookie-notice-dismissed";
+
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(true); // default hidden until we check storage
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem("cookie-notice-dismissed")) {
-        setVisible(true);
-      }
+      setDismissed(window.localStorage.getItem(KEY) === "1");
     } catch {
-      // localStorage unavailable (e.g. private browsing) - just skip the banner
+      setDismissed(false);
     }
   }, []);
 
   function dismiss() {
+    setDismissed(true);
     try {
-      localStorage.setItem("cookie-notice-dismissed", "1");
-    } catch {}
-    setVisible(false);
+      window.localStorage.setItem(KEY, "1");
+    } catch {
+      // storage disabled - banner will just show again next visit, fine.
+    }
   }
 
-  if (!visible) return null;
+  if (dismissed) return null;
 
   return (
     <div className="cookieBanner" role="dialog" aria-label="Cookie notice">
       <p>
-        This site uses privacy-friendly, cookieless analytics to see how many people use it.
-        See our <Link href="/privacy">Privacy Policy</Link> for details.
+        This site doesn't use ads or tracking cookies. It only stores your favorites and this
+        notice locally on your device, never on a server. See our{" "}
+        <Link href="/privacy">Privacy Policy</Link>.
       </p>
-      <button className="searchButton" onClick={dismiss}>
+      <button className="searchButton" style={{ padding: "8px 16px" }} onClick={dismiss}>
         Got it
       </button>
     </div>

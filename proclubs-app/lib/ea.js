@@ -70,6 +70,15 @@ export function getClubInfo(clubId, platform = DEFAULT_PLATFORM) {
   return eaFetch(`/clubs/info?platform=${p}&clubIds=${clubId}`);
 }
 
+// EA serves club crests from a separate image endpoint keyed by
+// crestAssetId (found on info.customKit.crestAssetId). An id of 0/undefined
+// means "no custom crest set" - there's nothing to fetch in that case.
+export function getClubCrestUrl(crestAssetId, platform = DEFAULT_PLATFORM) {
+  if (!crestAssetId || Number(crestAssetId) === 0) return null;
+  const p = normalizePlatform(platform);
+  return `${BASE_URL}/clubs/crest?platform=${p}&crestAssetId=${crestAssetId}`;
+}
+
 // --- Stats & history -----------------------------------------------------
 
 export function getOverallStats(clubId, platform = DEFAULT_PLATFORM) {

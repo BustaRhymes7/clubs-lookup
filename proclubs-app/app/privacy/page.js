@@ -1,55 +1,61 @@
-import { CONTACT_EMAIL } from "../../lib/site";
-
 export const metadata = {
-  title: "Privacy Policy",
-  description: "What Clubs Lookup does and doesn't collect, and how EA's own data is used.",
+  title: "Privacy Policy — Clubs Lookup",
+  description: "How Clubs Lookup handles data: in short, it doesn't collect any.",
 };
 
 export default function PrivacyPage() {
   return (
     <main className="shell">
-      <p className="kicker display">LEGAL</p>
-      <h1 className="title display" style={{ fontSize: 34 }}>
+      <h1 className="title display" style={{ fontSize: 32 }}>
         Privacy Policy
       </h1>
-
       <div className="legalBody">
-        <h2>What this site is</h2>
         <p>
-          Clubs Lookup is a fan-made tool that searches EA Sports FC Pro Clubs teams and
-          displays stats EA's own servers return for that search. It is not affiliated with,
-          endorsed by, or connected to Electronic Arts Inc.
+          Clubs Lookup is a free, non-commercial fan project. It does not have user accounts,
+          does not run ads, and does not use tracking or advertising cookies.
         </p>
 
-        <h2>What we collect from you</h2>
+        <h2>What we store</h2>
         <p>
-          We don't have user accounts, logins, or a database of visitors. The club names you
-          search are sent to EA's servers to look up that club — we don't store your searches
-          ourselves.
+          Favorites you save are stored only in your browser's local storage, on your own
+          device. They are never sent to, or stored on, any server we run. Clearing your
+          browser's site data, using a different browser, or switching devices will remove
+          them or start you fresh.
+        </p>
+        <p>
+          A small "cookie notice dismissed" flag is stored the same way, locally, so this
+          banner doesn't reappear every visit.
+        </p>
+
+        <h2>What we don't store</h2>
+        <p>
+          We don't require sign-up, don't collect names, emails, or payment details, and don't
+          run any database of user information. There is nothing to be lost in a data breach
+          because there is no user data on any server.
+        </p>
+
+        <h2>Third-party data</h2>
+        <p>
+          Club and player stats are fetched live, on demand, from EA's own public Pro Clubs
+          endpoints, directly from our server to EA's servers. Your search terms are sent to
+          EA (as they would be if you used EA's own site) but nothing about that request is
+          logged or stored by us afterward.
         </p>
 
         <h2>Analytics</h2>
         <p>
-          We use Vercel Analytics, which is cookieless: it counts page views in aggregate and
-          doesn't track individuals across sites or store personal data about you.
+          If analytics are enabled, they are limited to aggregate, cookieless page-view counts
+          used to understand overall traffic. No individual visitor is identified or tracked
+          across sites.
         </p>
 
-        <h2>Data shown about Pro Clubs teams and players</h2>
+        <h2>Changes</h2>
         <p>
-          Club names, gamertags, and match stats shown on this site come directly from EA's
-          public Pro Clubs data for teams you search. This is the same data visible in-game and
-          on EA's own Pro Clubs website. If you'd like data about your club removed from this
-          site's display, contact us below — though since we don't store it, it will simply stop
-          appearing once your data changes on EA's end.
+          If this policy changes, the update will be posted on this page. Continued use of the
+          site after a change means you accept the updated policy.
         </p>
 
-        <h2>Contact</h2>
-        <p>
-          Questions about this policy, or an EA representative with concerns about this project:{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
-        </p>
-
-        <p className="legalUpdated">Last updated: this page should be dated when you publish it.</p>
+        <p className="legalUpdated">Last updated: {new Date().getFullYear()}</p>
       </div>
     </main>
   );

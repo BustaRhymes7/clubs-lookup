@@ -10,30 +10,29 @@ export default function AppleIcon() {
         style={{
           width: "100%",
           height: "100%",
+          background: "#0b0e14",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0b0e14",
-          borderRadius: 36,
+          borderRadius: 40,
         }}
       >
         <div
           style={{
-            width: 128,
-            height: 128,
-            borderRadius: 32,
-            background: "#151a25",
-            border: "5px solid #22e584",
+            width: 110,
+            height: 110,
+            borderRadius: "50%",
+            border: "8px solid #22e584",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 68,
+            fontSize: 56,
           }}
         >
           ⚽
         </div>
       </div>
     ),
-    { ...size }
+    size
   );
 }

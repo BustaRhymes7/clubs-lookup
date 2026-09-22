@@ -1,23 +1,19 @@
 import { Space_Grotesk, Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import "./globals.css";
 import Footer from "./components/Footer";
 import CookieBanner from "./components/CookieBanner";
+import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
   variable: "--font-display",
+  display: "swap",
 });
-
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
+  display: "swap",
 });
 
-// Vercel sets VERCEL_URL automatically on every deploy, so Open Graph /
-// canonical URLs resolve correctly with zero manual configuration.
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
@@ -25,25 +21,27 @@ const siteUrl =
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Clubs Lookup — Live EA Pro Clubs Stats",
-    template: "%s · Clubs Lookup",
+    default: "Clubs Lookup — Pro Clubs stats, free",
+    template: "%s",
   },
   description:
-    "Search any EA Sports FC Pro Clubs team and see live club stats, match history, and full player breakdowns, pulled straight from EA's servers.",
+    "A free fan-made Pro Clubs stats lookup. Search any club, see the full record, form, squad, and player-by-player breakdowns — live from EA's own data.",
+  applicationName: "Clubs Lookup",
+  manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "Clubs Lookup — Live EA Pro Clubs Stats",
-    description:
-      "Search any EA Sports FC Pro Clubs team and see live club stats, match history, and full player breakdowns.",
     type: "website",
     siteName: "Clubs Lookup",
+    title: "Clubs Lookup — Pro Clubs stats, free",
+    description:
+      "A free fan-made Pro Clubs stats lookup. Search any club, see the full record, form, squad, and player-by-player breakdowns.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Clubs Lookup — Live EA Pro Clubs Stats",
-    description: "Live EA Pro Clubs stats — club record, match history, full roster breakdowns.",
+    title: "Clubs Lookup — Pro Clubs stats, free",
+    description:
+      "A free fan-made Pro Clubs stats lookup. Search any club, see the full record, form, squad, and player-by-player breakdowns.",
   },
   robots: { index: true, follow: true },
-  manifest: "/manifest.webmanifest",
 };
 
 export const viewport = {
@@ -54,12 +52,11 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${spaceGrotesk.variable} ${inter.variable}`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+      <body>
         {children}
         <Footer />
         <CookieBanner />
-        <Analytics />
       </body>
     </html>
   );

@@ -143,8 +143,6 @@ export default function Home() {
               <Link
                 key={i}
                 href={clubHref(clubId, platform, name)}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="resultCard"
               >
                 <div>
@@ -171,8 +169,6 @@ export default function Home() {
               <Link
                 key={`${f.platform}:${f.clubId}`}
                 href={clubHref(f.clubId, f.platform, f.name)}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="resultCard"
               >
                 <div>
@@ -192,7 +188,7 @@ export default function Home() {
       )}
 
       {status === "idle" && !results && (
-        <p className="status">Search for a club to see live stats — opens in a new tab.</p>
+        <p className="status">Search for a club to see live stats.</p>
       )}
 
       {debugMode && results && (

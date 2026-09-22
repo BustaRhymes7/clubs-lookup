@@ -188,7 +188,7 @@ function PlayerStatsTable({ teamName, players }) {
 
 // Confirmed against EA's real clubMemberSchema (via the proclubs-sdk source).
 const MEMBER_COLUMNS = [
-  { key: ["proName", "name"], label: "Name" },
+  { key: ["name", "proName"], label: "Name" },
   { key: ["proPos", "favoritePosition"], label: "Pos" },
   { key: ["gamesPlayed"], label: "GP" },
   { key: ["goals"], label: "Goals" },
@@ -397,42 +397,134 @@ const PLAYER_EASTER_EGGS = {
   rexsullivan: "Anddddd it's another red card for Sullivan.",
 };
 
-function getEasterEgg(name) {
-  if (!name) return null;
-  return PLAYER_EASTER_EGGS[String(name).trim().toLowerCase()] ?? null;
+function getEasterEgg(player) {
+  const candidates = [player?.proName, player?.name].filter(Boolean);
+  for (const candidate of candidates) {
+    const hit = PLAYER_EASTER_EGGS[String(candidate).trim().toLowerCase()];
+    if (hit) return hit;
+  }
+  return null;
 }
 
-// --- Podium (top 3 by average rating) -----------------------------------
+// --- Shared derived stats (goals+assists, completed passes, successful
+// tackles, wins, clean sheets) used by both the podium score and the squad
+// leaders swimlane. EA's API doesn't expose "completed passes" or
+// "successful tackles" directly - only attempts + a success rate - so those
+// two are derived by multiplying the two out.
+function deriveMemberStats(m) {
+  const goals = Number(pick(m, ["goals"])) || 0;
+  const assists = Number(pick(m, ["assists"])) || 0;
+  const gamesPlayed = Number(pick(m, ["gamesPlayed"])) || 0;
+  const winRate = Number(pick(m, ["winRate"])) || 0;
+  const winsField = pick(m, ["wins"]);
+  const wins = winsField != null ? Number(winsField) : Math.round(gamesPlayed * (winRate / 100));
+  const passesMade = Number(pick(m, ["passesMade"])) || 0;
+  const passSuccessRate = Number(pick(m, ["passSuccessRate"])) || 0;
+  const completedPasses = Math.round(passesMade * (passSuccessRate / 100));
+  const tacklesMade = Number(pick(m, ["tacklesMade"])) || 0;
+  const tackleSuccessRate = Number(pick(m, ["tackleSuccessRate"])) || 0;
+  const successfulTackles = Math.round(tacklesMade * (tackleSuccessRate / 100));
+  const cleanSheets =
+    (Number(pick(m, ["cleanSheetsDef"])) || 0) + (Number(pick(m, ["cleanSheetsGK"])) || 0);
+  return { goals, assists, wins, completedPasses, successfulTackles, cleanSheets };
+}
+
+// --- Podium (top 3 by weighted performance score) ------------------------
+// Score = (goals+assists) 40% + completed passes 30% + tackle success % 30%,
+// each normalized against the squad's own max so the three components (very
+// different scales) are comparable before being weighted.
 
 export function Podium({ members, onSelect }) {
-  const ranked = members
-    .filter((m) => pick(m, ["ratingAve"]) != null && !Number.isNaN(Number(m.ratingAve)))
-    .sort((a, b) => Number(b.ratingAve) - Number(a.ratingAve))
+  const withScore = members.map((m) => {
+    const stats = deriveMemberStats(m);
+    const tackleSuccessRate = Number(pick(m, ["tackleSuccessRate"])) || 0;
+    return { member: m, ga: stats.goals + stats.assists, completedPasses: stats.completedPasses, tackleSuccessRate };
+  });
+
+  const maxGA = Math.max(...withScore.map((s) => s.ga), 1);
+  const maxPasses = Math.max(...withScore.map((s) => s.completedPasses), 1);
+  const maxTackle = Math.max(...withScore.map((s) => s.tackleSuccessRate), 1);
+
+  const ranked = withScore
+    .map((s) => ({
+      player: s.member,
+      score:
+        (s.ga / maxGA) * 40 + (s.completedPasses / maxPasses) * 30 + (s.tackleSuccessRate / maxTackle) * 30,
+    }))
+    .sort((a, b) => b.score - a.score)
     .slice(0, 3);
 
   if (ranked.length < 3) return null;
 
   const [first, second, third] = ranked;
   const spots = [
-    { player: second, place: 2 },
-    { player: first, place: 1 },
-    { player: third, place: 3 },
+    { entry: second, place: 2 },
+    { entry: first, place: 1 },
+    { entry: third, place: 3 },
   ];
   const medal = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
   return (
     <div className="podium">
-      {spots.map(({ player, place }) => (
+      {spots.map(({ entry, place }) => (
         <button
           key={place}
           className={`podiumSpot podiumSpot${place}`}
-          onClick={() => onSelect(player)}
+          onClick={() => onSelect(entry.player)}
         >
           <div className="podiumMedal">{medal[place]}</div>
-          <div className="podiumName">{pick(player, ["proName", "name"]) ?? "—"}</div>
-          <div className="podiumRating">{player.ratingAve}</div>
+          <div className="podiumName">{pick(entry.player, ["name", "proName"]) ?? "—"}</div>
+          <div className="podiumRating">{entry.score.toFixed(1)} pts</div>
           <div className="podiumBase">{place}</div>
         </button>
+      ))}
+    </div>
+  );
+}
+
+// --- Squad leaders swimlane -----------------------------------------------
+
+export function SquadLeaders({ members }) {
+  if (!members || members.length === 0) return null;
+
+  const withStats = members.map((m) => ({ member: m, ...deriveMemberStats(m) }));
+
+  const categories = [
+    { label: "Top scorer", value: (s) => s.goals },
+    { label: "Top assister", value: (s) => s.assists },
+    { label: "Most wins", value: (s) => s.wins },
+    { label: "Top G+A", value: (s) => s.goals + s.assists },
+    { label: "Top passer", value: (s) => s.completedPasses },
+    { label: "Top tackler", value: (s) => s.successfulTackles },
+    { label: "Top clean sheets", value: (s) => s.cleanSheets },
+  ];
+
+  const leaders = categories
+    .map(({ label, value }) => {
+      let best = null;
+      let bestValue = -Infinity;
+      for (const s of withStats) {
+        const v = value(s);
+        if (v > bestValue) {
+          bestValue = v;
+          best = s;
+        }
+      }
+      if (!best || bestValue <= 0) return null;
+      return { label, value: bestValue, name: pick(best.member, ["name", "proName"]) ?? "—" };
+    })
+    .filter(Boolean);
+
+  if (leaders.length === 0) return null;
+
+  return (
+    <div className="leaderRow">
+      {leaders.map((l) => (
+        <div className="leaderCard" key={l.label}>
+          <div className="leaderLabel">{l.label}</div>
+          <div className="leaderValue">{l.value}</div>
+          <div className="leaderName">{l.name}</div>
+        </div>
       ))}
     </div>
   );
@@ -448,8 +540,8 @@ export function SquadSection({ members }) {
   function handleRowClick(m) {
     if (compareMode) {
       setCompareSelection((prev) => {
-        const name = pick(m, ["proName", "name"]);
-        const already = prev.find((p) => pick(p, ["proName", "name"]) === name);
+        const name = pick(m, ["name", "proName"]);
+        const already = prev.find((p) => pick(p, ["name", "proName"]) === name);
         if (already) return prev.filter((p) => p !== m);
         if (prev.length >= 2) return [prev[1], m];
         return [...prev, m];
@@ -487,9 +579,9 @@ export function SquadSection({ members }) {
 
       <div className="squadList">
         {members.map((m, i) => {
-          const name = pick(m, ["proName", "name"]) ?? "Player";
+          const name = pick(m, ["name", "proName"]) ?? "Player";
           const isSelected = compareSelection.some(
-            (p) => pick(p, ["proName", "name"]) === name
+            (p) => pick(p, ["name", "proName"]) === name
           );
           return (
             <button
@@ -529,8 +621,8 @@ function PlayerCompare({ players }) {
     { label: "Shot success %", key: ["shotSuccessRate"], higherIsBetter: true },
   ];
   const [a, b] = players;
-  const nameA = pick(a, ["proName", "name"]);
-  const nameB = pick(b, ["proName", "name"]);
+  const nameA = pick(a, ["name", "proName"]);
+  const nameB = pick(b, ["name", "proName"]);
 
   let aWins = 0;
   let bWins = 0;
@@ -577,8 +669,8 @@ function PlayerCompare({ players }) {
 }
 
 function PlayerModal({ player, onClose }) {
-  const name = pick(player, ["proName", "name"]) ?? "Player";
-  const egg = getEasterEgg(name);
+  const name = pick(player, ["name", "proName"]) ?? "Player";
+  const egg = getEasterEgg(player);
   const [showEgg, setShowEgg] = useState(!!egg);
 
   return (

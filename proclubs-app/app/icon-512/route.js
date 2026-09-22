@@ -9,23 +9,22 @@ export async function GET() {
         style={{
           width: "100%",
           height: "100%",
+          background: "#0b0e14",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0b0e14",
         }}
       >
         <div
           style={{
-            width: 360,
-            height: 360,
-            borderRadius: 90,
-            background: "#151a25",
-            border: "14px solid #22e584",
+            width: 340,
+            height: 340,
+            borderRadius: "50%",
+            border: "24px solid #22e584",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 200,
+            fontSize: 180,
           }}
         >
           ⚽

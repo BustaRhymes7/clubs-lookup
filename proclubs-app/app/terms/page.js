@@ -1,53 +1,60 @@
-import { CONTACT_EMAIL } from "../../lib/site";
-
 export const metadata = {
-  title: "Terms & Conditions",
-  description: "Terms of use for Clubs Lookup, an unofficial EA Pro Clubs stats tool.",
+  title: "Terms & Conditions — Clubs Lookup",
+  description: "Terms of use for the free, non-commercial Clubs Lookup fan project.",
 };
 
 export default function TermsPage() {
   return (
     <main className="shell">
-      <p className="kicker display">LEGAL</p>
-      <h1 className="title display" style={{ fontSize: 34 }}>
+      <h1 className="title display" style={{ fontSize: 32 }}>
         Terms &amp; Conditions
       </h1>
-
       <div className="legalBody">
-        <h2>Unofficial fan project</h2>
+        <h2>Not affiliated with EA</h2>
         <p>
-          This site is not affiliated with, endorsed by, or connected to Electronic Arts Inc.
-          It's a small side project built by a fan, for fun, purely so other Pro Clubs players
-          can look up their own and their friends' stats more easily — not a commercial product.
-          "EA Sports FC" and "Pro Clubs" are trademarks of their respective owners. Data is
-          fetched live from EA's public, unofficial Pro Clubs endpoints, which EA has not
-          authorized for third-party use and could change or shut down at any time.
+          Clubs Lookup is an independent, unofficial fan project. It is not affiliated with,
+          endorsed by, sponsored by, or in any way officially connected with Electronic Arts
+          Inc. or any of its subsidiaries or affiliates. EA, EA SPORTS, and any associated
+          names, logos, and marks are trademarks of Electronic Arts Inc. All club and player
+          data shown belongs to EA and the respective clubs and players; we simply display it.
+        </p>
+
+        <h2>Free, non-commercial use</h2>
+        <p>
+          This site is provided free of charge, for fun, with no ads and no monetization of
+          any kind. It exists purely for players to look up their own and their friends' Pro
+          Clubs stats.
+        </p>
+
+        <h2>Data accuracy</h2>
+        <p>
+          Stats are pulled live from EA's own public, unofficial endpoints. We don't control
+          EA's data, its accuracy, or its availability. EA can change, rate-limit, or remove
+          these endpoints at any time without notice, which may cause this site to show
+          incomplete or outdated information, or to stop working entirely, until we can adapt.
         </p>
 
         <h2>No warranty</h2>
         <p>
-          This site is provided "as is," with no guarantee of accuracy, uptime, or availability.
-          Stats displayed reflect whatever EA's servers return at the time of your search and may
-          be incomplete, delayed, or wrong.
+          This site is provided "as is," without warranty of any kind, express or implied. We
+          make no guarantee that it will be available, accurate, or error-free at any given
+          time.
         </p>
 
         <h2>Acceptable use</h2>
         <p>
-          Use this site for personal, non-commercial lookups. Don't use it to overload, scrape at
-          scale, or resell EA's data, and don't attempt to interfere with the site or EA's
-          underlying services.
+          Please don't attempt to abuse, scrape at scale, or disrupt this site or the
+          underlying EA endpoints it relies on — doing so risks EA blocking access for
+          everyone who uses this project.
         </p>
 
         <h2>Changes</h2>
-        <p>These terms may be updated at any time as the site or EA's endpoints change.</p>
-
-        <h2>Contact</h2>
         <p>
-          Questions, or an EA representative with concerns about this project:{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          These terms may be updated from time to time. Continued use of the site after a
+          change means you accept the updated terms.
         </p>
 
-        <p className="legalUpdated">Last updated: this page should be dated when you publish it.</p>
+        <p className="legalUpdated">Last updated: {new Date().getFullYear()}</p>
       </div>
     </main>
   );

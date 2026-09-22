@@ -3,7 +3,7 @@ const siteUrl =
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 export default function sitemap() {
-  const routes = ["", "/privacy", "/terms", "/contact"];
+  const routes = ["", "/privacy", "/terms"];
   return routes.map((route) => ({
     url: `${siteUrl}${route}`,
     lastModified: new Date(),

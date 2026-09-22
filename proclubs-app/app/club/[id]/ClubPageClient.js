@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { isFavorited, toggleFavorite } from "../../../lib/favorites";
+import { getClubCrestUrl } from "../../../lib/ea";
 import {
   PLATFORM_OPTIONS,
   MATCH_TYPES,
@@ -13,6 +14,7 @@ import {
   SectionStatus,
   MatchRow,
   SquadSection,
+  SquadLeaders,
   computeForm,
   FormStrip,
   RecordSummary,
@@ -41,6 +43,7 @@ export default function ClubPageClient({ clubId }) {
   const [fetchedAt, setFetchedAt] = useState(null);
   const [showRaw, setShowRaw] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const [showEasterBanner, setShowEasterBanner] = useState(false);
 
   function reportError(err) {
     setError(toFriendlyError(err.message));
@@ -77,12 +80,22 @@ export default function ClubPageClient({ clubId }) {
 
   const infoRecord = extractRecord(club?.info?.data, clubId);
   const displayName = infoRecord?.name ?? nameParam ?? "Club";
+  const crestAssetId = infoRecord?.customKit?.crestAssetId ?? infoRecord?.crestAssetId ?? null;
+  const crestUrl = getClubCrestUrl(crestAssetId, platform);
   const statsRecord = extractRecord(club?.overallStats?.data, clubId) || infoRecord;
   const memberList = extractMembers(club?.members?.data);
   const matchList = extractList(club?.matches?.data);
   const achievements = extractList(club?.playoffAchievements?.data);
   const platformLabel = PLATFORM_OPTIONS.find((p) => p.value === platform)?.label;
   const form = computeForm(matchList, clubId);
+
+  useEffect(() => {
+    if (displayName && displayName.trim().toLowerCase() === "jidu and sons") {
+      setShowEasterBanner(true);
+      const t = setTimeout(() => setShowEasterBanner(false), 3200);
+      return () => clearTimeout(t);
+    }
+  }, [displayName]);
 
   function handleToggleFavorite() {
     toggleFavorite({ clubId, platform, name: displayName });
@@ -91,6 +104,12 @@ export default function ClubPageClient({ clubId }) {
 
   return (
     <main className="shell">
+      {showEasterBanner && (
+        <div className="easterBanner" aria-hidden="true">
+          <span className="easterBannerText">Uselaiseeeee</span>
+        </div>
+      )}
+
       <button className="backLink" onClick={() => router.push("/")}>
         ← New search
       </button>
@@ -112,7 +131,19 @@ export default function ClubPageClient({ clubId }) {
             <>
               <div className="clubHeader">
                 <div className="clubHeaderRow">
-                  <h1 className="clubName display">{displayName}</h1>
+                  <div className="clubHeaderIdentity">
+                    {crestUrl && (
+                      <img
+                        src={crestUrl}
+                        alt=""
+                        className="clubCrest"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    )}
+                    <h1 className="clubName display">{displayName}</h1>
+                  </div>
                   <button
                     className={favorited ? "favButtonActive" : "favButton"}
                     onClick={handleToggleFavorite}
@@ -172,6 +203,14 @@ export default function ClubPageClient({ clubId }) {
                   <p className="sectionTitle display" style={{ marginTop: 28 }}>
                     TOP PERFORMERS &amp; SQUAD
                   </p>
+                  {memberList && memberList.length > 0 && (
+                    <>
+                      <p className="sectionTitle display" style={{ marginTop: 4, fontSize: 11 }}>
+                        SQUAD LEADERS
+                      </p>
+                      <SquadLeaders members={memberList} />
+                    </>
+                  )}
                   {memberList && memberList.length > 0 ? (
                     <SquadSection members={memberList} />
                   ) : (
