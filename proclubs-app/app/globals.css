@@ -931,3 +931,102 @@ button {
     border-radius: 20px;
   }
 }
+
+/* --- Record summary (colored W/D/L, win rate bar, streak) --- */
+
+.recordRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.recordTile {
+  background: var(--card);
+  border: 1.5px solid var(--card-border);
+  border-radius: 14px;
+  padding: 16px 8px;
+  text-align: center;
+}
+
+.recordValue {
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordW { color: var(--accent); }
+.recordD { color: var(--warning); }
+.recordL { color: var(--danger); }
+
+.winRateBlock {
+  background: var(--card);
+  border: 1.5px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.winRateHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+
+.winRateValue {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.winRateTrack {
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.winRateFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.streakCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 4px;
+  border: 1.5px solid;
+}
+
+.streakW { background: rgba(34,229,132,0.1); border-color: var(--accent); }
+.streakL { background: rgba(255,84,112,0.1); border-color: var(--danger); }
+.streakD { background: rgba(255,176,32,0.1); border-color: var(--warning); }
+
+.streakValue {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.streakW .streakValue { color: var(--accent); }
+.streakL .streakValue { color: var(--danger); }
+.streakD .streakValue { color: var(--warning); }
+
+/* --- Comparison winner marks --- */
+
+.compareWinner {
+  color: var(--accent);
+}
+
+.compareTally {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--card-border);
+}

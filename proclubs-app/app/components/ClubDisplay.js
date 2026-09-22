@@ -312,6 +312,79 @@ export function FormStrip({ form }) {
   );
 }
 
+// The most recent unbroken run of identical results, read off the front of
+// the form array (form[0] is the most recent match).
+function computeStreak(form) {
+  if (!form || form.length === 0) return null;
+  const current = form[0];
+  let count = 0;
+  for (const r of form) {
+    if (r !== current) break;
+    count++;
+  }
+  const label = current === "W" ? "Win streak" : current === "L" ? "Losing streak" : "Unbeaten run";
+  return { count, label, type: current };
+}
+
+// Colored win/draw/loss record, a win-rate bar, and a streak callout - the
+// dense "at a glance" summary block that sits above the stat tiles.
+export function RecordSummary({ wins, losses, ties, goals, goalsAgainst, form }) {
+  const w = Number(wins) || 0;
+  const l = Number(losses) || 0;
+  const t = Number(ties) || 0;
+  const played = w + l + t;
+  const winRate = played > 0 ? Math.round((w / played) * 100) : null;
+  const goalDiff =
+    goals != null && goalsAgainst != null ? Number(goals) - Number(goalsAgainst) : null;
+  const streak = computeStreak(form);
+
+  return (
+    <div>
+      <div className="recordRow">
+        <div className="recordTile">
+          <div className="recordValue recordW display">{wins ?? "—"}</div>
+          <div className="statLabel">Wins</div>
+        </div>
+        <div className="recordTile">
+          <div className="recordValue recordD display">{ties ?? "—"}</div>
+          <div className="statLabel">Draws</div>
+        </div>
+        <div className="recordTile">
+          <div className="recordValue recordL display">{losses ?? "—"}</div>
+          <div className="statLabel">Losses</div>
+        </div>
+      </div>
+
+      {winRate != null && (
+        <div className="winRateBlock">
+          <div className="winRateHeader">
+            <span>Win rate</span>
+            <span className="winRateValue">{winRate}%</span>
+          </div>
+          <div className="winRateTrack">
+            <div className="winRateFill" style={{ width: `${winRate}%` }} />
+          </div>
+          {goalDiff != null && (
+            <div className="status" style={{ padding: "6px 0 0", fontSize: 12 }}>
+              {goals} scored / {goalsAgainst} conceded ({goalDiff >= 0 ? "+" : ""}
+              {goalDiff} goal difference)
+            </div>
+          )}
+        </div>
+      )}
+
+      {streak && streak.count >= 2 && (
+        <div className={`streakCard streak${streak.type}`}>
+          <span className="statLabel">Current streak</span>
+          <span className="streakValue display">
+            {streak.count} {streak.label}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --- Player easter eggs -------------------------------------------------
 
 const PLAYER_EASTER_EGGS = {
@@ -442,34 +515,63 @@ export function SquadSection({ members }) {
 
 function PlayerCompare({ players }) {
   const rows = [
-    { label: "Position", key: ["proPos", "favoritePosition"] },
     { label: "Games played", key: ["gamesPlayed"] },
-    { label: "Goals", key: ["goals"] },
-    { label: "Assists", key: ["assists"] },
-    { label: "MOTM", key: ["manOfTheMatch"] },
-    { label: "Red cards", key: ["redCards"] },
-    { label: "Win %", key: ["winRate"] },
-    { label: "Avg rating", key: ["ratingAve"] },
-    { label: "Passes made", key: ["passesMade"] },
-    { label: "Pass success %", key: ["passSuccessRate"] },
-    { label: "Tackles made", key: ["tacklesMade"] },
-    { label: "Tackle success %", key: ["tackleSuccessRate"] },
-    { label: "Shot success %", key: ["shotSuccessRate"] },
+    { label: "Goals", key: ["goals"], higherIsBetter: true },
+    { label: "Assists", key: ["assists"], higherIsBetter: true },
+    { label: "MOTM", key: ["manOfTheMatch"], higherIsBetter: true },
+    { label: "Red cards", key: ["redCards"], higherIsBetter: false },
+    { label: "Win %", key: ["winRate"], higherIsBetter: true },
+    { label: "Avg rating", key: ["ratingAve"], higherIsBetter: true },
+    { label: "Passes made", key: ["passesMade"], higherIsBetter: true },
+    { label: "Pass success %", key: ["passSuccessRate"], higherIsBetter: true },
+    { label: "Tackles made", key: ["tacklesMade"], higherIsBetter: true },
+    { label: "Tackle success %", key: ["tackleSuccessRate"], higherIsBetter: true },
+    { label: "Shot success %", key: ["shotSuccessRate"], higherIsBetter: true },
   ];
   const [a, b] = players;
+  const nameA = pick(a, ["proName", "name"]);
+  const nameB = pick(b, ["proName", "name"]);
+
+  let aWins = 0;
+  let bWins = 0;
+  const scored = rows.map((r) => {
+    const av = pick(a, r.key);
+    const bv = pick(b, r.key);
+    if (r.higherIsBetter == null || av == null || bv == null || Number(av) === Number(bv)) {
+      return { ...r, av, bv, winner: null };
+    }
+    const aBetter = r.higherIsBetter ? Number(av) > Number(bv) : Number(av) < Number(bv);
+    if (aBetter) aWins++;
+    else bWins++;
+    return { ...r, av, bv, winner: aBetter ? "a" : "b" };
+  });
+
   return (
     <div className="compareCard">
       <div className="compareHeader">
-        <span>{pick(a, ["proName", "name"])}</span>
-        <span>{pick(b, ["proName", "name"])}</span>
+        <span>{nameA}</span>
+        <span>{nameB}</span>
       </div>
-      {rows.map((r) => (
+      {scored.map((r) => (
         <div className="compareRow" key={r.label}>
-          <span className="compareValue">{pick(a, r.key) ?? "—"}</span>
+          <span className={`compareValue${r.winner === "a" ? " compareWinner" : ""}`}>
+            {r.winner === "a" ? "✓ " : ""}
+            {r.av ?? "—"}
+          </span>
           <span className="compareLabel">{r.label}</span>
-          <span className="compareValue">{pick(b, r.key) ?? "—"}</span>
+          <span className={`compareValue${r.winner === "b" ? " compareWinner" : ""}`}>
+            {r.winner === "b" ? "✓ " : ""}
+            {r.bv ?? "—"}
+          </span>
         </div>
       ))}
+      {(aWins > 0 || bWins > 0) && (
+        <div className="compareTally">
+          {aWins === bWins
+            ? `Tied ${aWins}-${bWins}`
+            : `🏆 ${aWins > bWins ? nameA : nameB} wins ${Math.max(aWins, bWins)}-${Math.min(aWins, bWins)}!`}
+        </div>
+      )}
     </div>
   );
 }

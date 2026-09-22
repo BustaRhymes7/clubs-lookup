@@ -15,6 +15,7 @@ import {
   SquadSection,
   computeForm,
   FormStrip,
+  RecordSummary,
   extractRecord,
   extractList,
   extractMembers,
@@ -141,15 +142,22 @@ export default function ClubPageClient({ clubId }) {
 
               {tab === "overview" && (
                 <>
+                  <RecordSummary
+                    wins={statsRecord?.wins}
+                    losses={statsRecord?.losses}
+                    ties={statsRecord?.ties}
+                    goals={statsRecord?.goals}
+                    goalsAgainst={statsRecord?.goalsAgainst}
+                    form={form}
+                  />
+
+                  <p className="sectionTitle display" style={{ marginTop: 24 }}>
+                    CLUB STATS
+                  </p>
                   <div className="statGrid">
-                    <Stat label="Wins" value={statsRecord?.wins} />
-                    <Stat label="Losses" value={statsRecord?.losses} />
-                    <Stat label="Ties" value={statsRecord?.ties} />
                     <Stat label="Skill rating" value={statsRecord?.skillRating} />
                     <Stat label="Games played" value={statsRecord?.gamesPlayed} />
                     <Stat label="Playoff games" value={statsRecord?.gamesPlayedPlayoff} />
-                    <Stat label="Goals" value={statsRecord?.goals} />
-                    <Stat label="Goals against" value={statsRecord?.goalsAgainst} />
                     <Stat label="Best division" value={statsRecord?.bestDivision} />
                     <Stat label="Best finish" value={statsRecord?.bestFinishGroup} />
                     <Stat label="Promotions" value={statsRecord?.promotions} />
