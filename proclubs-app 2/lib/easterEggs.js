@@ -14,7 +14,7 @@
 export const PLAYER_EASTER_EGGS = {
   juzaveiro: [
     "THE GOAT",
-    "{goals} goals, {assists} assists. Messi watching like: who's this?",
+    "{goals} goals, {assists} assists. The Ballon d'Or committee is taking notes.",
     "{motm} Man of the Match awards. Cristiano's trophy cabinet is nervous.",
     "Averaging a {rating} rating. Zidane-level elegance, teammates just pass and pray.",
   ],
