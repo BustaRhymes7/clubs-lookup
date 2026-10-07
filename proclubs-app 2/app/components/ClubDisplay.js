@@ -192,7 +192,7 @@ function PlayerStatsTable({ teamName, players }) {
 // Confirmed against EA's real clubMemberSchema (via the proclubs-sdk source).
 const MEMBER_COLUMNS = [
   { key: ["name", "proName"], label: "Name" },
-  { key: ["proPos", "favoritePosition"], label: "Pos" },
+  { key: ["proPos", "favoritePosition"], label: "Pos", format: positionLabel },
   { key: ["gamesPlayed"], label: "GP" },
   { key: ["goals"], label: "Goals" },
   { key: ["assists"], label: "Assists" },
@@ -201,6 +201,21 @@ const MEMBER_COLUMNS = [
   { key: ["winRate"], label: "Win %" },
   { key: ["ratingAve"], label: "Avg rating" },
 ];
+
+// EA sends proPos as a numeric position id (e.g. 25 = ST, 14 = CM).
+const POSITION_NAMES = [
+  "GK", "SW", "RWB", "RB", "RCB", "CB", "LCB", "LB", "LWB", "RDM",
+  "CDM", "LDM", "RM", "RCM", "CM", "LCM", "LM", "RAM", "CAM", "LAM",
+  "RF", "CF", "LF", "RW", "RS", "ST", "LS", "LW",
+];
+
+export function positionLabel(player) {
+  const pos = pick(player, ["proPos", "favoritePosition"]);
+  if (pos == null || pos === "") return null;
+  const id = Number(pos);
+  if (Number.isInteger(id) && POSITION_NAMES[id]) return POSITION_NAMES[id];
+  return String(pos);
+}
 
 export function pick(obj, keys) {
   for (const k of keys) {
@@ -224,7 +239,7 @@ export function MembersTable({ members }) {
           {members.map((m, i) => (
             <tr key={m?.playerId ?? m?.name ?? i}>
               {MEMBER_COLUMNS.map((col) => (
-                <td key={col.label}>{pick(m, col.key) ?? "—"}</td>
+                <td key={col.label}>{(col.format ? col.format(m) : pick(m, col.key)) ?? "—"}</td>
               ))}
             </tr>
           ))}
@@ -750,7 +765,7 @@ export function SquadSection({ members }) {
                 <span className="squadName">{name}</span>
               </span>
               <span className="squadMeta">
-                {pick(m, ["proPos", "favoritePosition"]) ?? "—"} · {m.goals ?? 0}G · {m.assists ?? 0}A
+                {positionLabel(m) ?? "—"} · {m.goals ?? 0}G · {m.assists ?? 0}A
               </span>
             </button>
           );
@@ -852,7 +867,7 @@ function PlayerModal({ player, onClose }) {
               {name}
             </h2>
             <div className="clubSub" style={{ marginBottom: 12 }}>
-              {pick(player, ["proPos", "favoritePosition"]) ?? "Position unknown"}
+              {positionLabel(player) ?? "Position unknown"}
               {pick(player, ["proOverallStr"]) ? ` · OVR ${pick(player, ["proOverallStr"])}` : ""}
             </div>
             <div className="statGridCompact">
