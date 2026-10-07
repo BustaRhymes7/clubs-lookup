@@ -22,7 +22,7 @@ export const PLAYER_EASTER_EGGS = {
     "USELAISEEEEE",
     "{games} games played. Berbatov energy: never once broke into a sprint.",
     "{tacklePct}% tackle success. Özil-level tracking back.",
-    "{goals} goals in {games} games. Walking around like prime Riquelme, minus the passing.",
+    "{goals} goals and {assists} assists in {games} games. Riquelme-style: does it all at walking pace.",
   ],
   "zan-shah": [
     "3197 own goals and counting",
@@ -53,6 +53,25 @@ export const PLAYER_EASTER_EGGS = {
     "{redCards} red cards. Sergio Ramos is taking notes.",
     "{tacklePct}% tackle success. Pepe-approved tackling technique.",
     "{redCards} reds in {games} games. Roy Keane thinks he should calm down.",
+  ],
+
+  daddyqinkeee: [
+    "Daddy's home… but the goals aren't.",
+    "{goals} goals, {assists} assists in {games} games. Daddy went out for milk and never came back.",
+    "{passPct}% pass success. Plays it safe like Michael Carrick, minus the trophies.",
+    "{tacklePct}% tackle success. Gattuso energy, Gattuso end product.",
+  ],
+  harambae1999: [
+    "Gone but never forgotten. Unlike his goals, which never existed.",
+    "{goals} goals, {assists} assists in {games} games. Harambe had more impact on the internet.",
+    "{tacklePct}% tackle success. Built like Adebayo Akinfenwa, tackles like a museum statue.",
+    "{cleanSheets} clean sheets. The zoo's best defender.",
+  ],
+  pudgypuffles: [
+    "{assists} assist(s) in {games} games. Somebody frame it.",
+    "{goals} goals. Puffing harder than Diego Costa chasing a referee.",
+    "{passPct}% pass success. Soft touch, softer impact.",
+    "{games} games in and still waiting for a highlight. Emile Heskey believes in you.",
   ],
 
   // Add new ones the same way:
