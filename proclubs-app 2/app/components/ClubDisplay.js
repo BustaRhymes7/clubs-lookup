@@ -407,11 +407,59 @@ export function RecordSummary({ wins, losses, ties, goals, goalsAgainst, form })
 // remove, or change any player's popup lines. Each player can have a list
 // of lines; one is picked at random every time their name is clicked.
 
+// Lines can use {placeholders} filled from the player's stats.
+
+function eggStats(player) {
+  const num = (keys) => {
+    const v = pick(player, keys);
+    if (v == null || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const games = num(["gamesPlayed"]);
+  const goals = num(["goals"]);
+  const rating = num(["ratingAve"]);
+  const defCs = num(["cleanSheetsDef"]);
+  const gkCs = num(["cleanSheetsGK"]);
+  return {
+    games,
+    goals,
+    assists: num(["assists"]),
+    motm: num(["manOfTheMatch"]),
+    redCards: num(["redCards"]),
+    winRate: num(["winRate"]),
+    rating: rating != null ? rating.toFixed(1) : null,
+    passPct: num(["passSuccessRate"]),
+    shotPct: num(["shotSuccessRate"]),
+    tacklePct: num(["tackleSuccessRate"]),
+    cleanSheets: defCs != null || gkCs != null ? (defCs || 0) + (gkCs || 0) : null,
+    goalsPerGame: games && goals != null ? (goals / games).toFixed(2) : null,
+  };
+}
+
+function fillEggLine(line, stats) {
+  let missing = false;
+  const text = line.replace(/\{(\w+)\}/g, (match, key) => {
+    const v = stats[key];
+    if (v == null) {
+      missing = true;
+      return match;
+    }
+    return String(v);
+  });
+  return missing ? null : text;
+}
+
 function getEasterEgg(player) {
   const candidates = [player?.proName, player?.name].filter(Boolean);
   for (const candidate of candidates) {
     const hit = PLAYER_EASTER_EGGS[String(candidate).trim().toLowerCase()];
-    const lines = (Array.isArray(hit) ? hit : [hit]).filter(Boolean);
+    if (!hit) continue;
+    const stats = eggStats(player);
+    const lines = (Array.isArray(hit) ? hit : [hit])
+      .filter(Boolean)
+      .map((line) => fillEggLine(line, stats))
+      .filter(Boolean);
     if (lines.length) return lines[Math.floor(Math.random() * lines.length)];
   }
   return null;
