@@ -404,13 +404,15 @@ export function RecordSummary({ wins, losses, ties, goals, goalsAgainst, form })
 
 // --- Player easter eggs -------------------------------------------------
 // The actual list lives in lib/easterEggs.js - edit that file to add,
-// remove, or change any player's popup line.
+// remove, or change any player's popup lines. Each player can have a list
+// of lines; one is picked at random every time their name is clicked.
 
 function getEasterEgg(player) {
   const candidates = [player?.proName, player?.name].filter(Boolean);
   for (const candidate of candidates) {
     const hit = PLAYER_EASTER_EGGS[String(candidate).trim().toLowerCase()];
-    if (hit) return hit;
+    const lines = (Array.isArray(hit) ? hit : [hit]).filter(Boolean);
+    if (lines.length) return lines[Math.floor(Math.random() * lines.length)];
   }
   return null;
 }
@@ -779,7 +781,8 @@ function PlayerCompare({ players }) {
 
 function PlayerModal({ player, onClose }) {
   const name = pick(player, ["name", "proName"]) ?? "Player";
-  const egg = getEasterEgg(player);
+  // Picked once per open so the line doesn't change on re-render.
+  const [egg] = useState(() => getEasterEgg(player));
   const [showEgg, setShowEgg] = useState(!!egg);
 
   return (
