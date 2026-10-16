@@ -16,6 +16,7 @@ import {
   SquadLeaders,
   PodiumSection,
   HallOfShame,
+  WeeklyAwards,
   computeForm,
   RecordSummary,
   extractRecord,
@@ -200,6 +201,15 @@ export default function ClubPageClient({ clubId }) {
                     </>
                   )}
 
+                  {matchList && matchList.length > 0 && (
+                    <>
+                      <p className="sectionTitle display" style={{ marginTop: 28 }}>
+                        WEEKLY AWARDS
+                      </p>
+                      <WeeklyAwards matches={matchList} clubId={clubId} />
+                    </>
+                  )}
+
                   <p className="sectionTitle display" style={{ marginTop: 28 }}>
                     CLUB STATS
                   </p>
@@ -287,7 +297,7 @@ export default function ClubPageClient({ clubId }) {
                   {matchList && matchList.length > 0 ? (
                     <div className="matchList">
                       {matchList.map((m, i) => (
-                        <MatchRow key={m?.matchId ?? i} match={m} />
+                        <MatchRow key={m?.matchId ?? i} match={m} clubId={clubId} />
                       ))}
                     </div>
                   ) : (

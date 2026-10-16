@@ -73,8 +73,71 @@ export function SectionStatus({ section, label, fallback }) {
   );
 }
 
-export function MatchRow({ match }) {
+// --- Match roasts ----------------------------------------------------------
+// One banter line per match, built from our side's player stats. The line is
+// picked deterministically from the match id so it doesn't change on reload.
+
+function hashString(str) {
+  let h = 0;
+  for (const ch of String(str)) h = (h * 31 + ch.charCodeAt(0)) | 0;
+  return Math.abs(h);
+}
+
+function matchPlayers(players) {
+  return Object.values(players || {}).map((p) => ({
+    name: p?.playername ?? "Someone",
+    goals: Number(p?.goals) || 0,
+    assists: Number(p?.assists) || 0,
+    shots: Number(p?.shots) || 0,
+    rating: Number(p?.rating) || 0,
+    reds: Number(p?.redcards) || 0,
+    passesMade: Number(p?.passesmade) || 0,
+    passAttempts: Number(p?.passattempts) || 0,
+  }));
+}
+
+function matchRoast(match, clubId) {
+  const clubsObj = match?.clubs || {};
+  const idStr = String(clubId);
+  const oppId = Object.keys(clubsObj).find((id) => id !== idStr);
+  if (!clubsObj[idStr] || !oppId) return null;
+  const g = Number(clubsObj[idStr].goals);
+  const og = Number(clubsObj[oppId].goals);
+  if (Number.isNaN(g) || Number.isNaN(og)) return null;
+
+  const ours = matchPlayers(match?.players?.[idStr]);
+  if (ours.length === 0) return null;
+  const byRating = [...ours].sort((a, b) => b.rating - a.rating);
+  const best = byRating[0];
+  const worst = byRating[byRating.length - 1];
+  const topScorer = [...ours].sort((a, b) => b.goals - a.goals)[0];
+  const wasteful = [...ours].filter((p) => p.goals === 0).sort((a, b) => b.shots - a.shots)[0];
+  const red = ours.find((p) => p.reds > 0);
+  const score = `${g}-${og}`;
+
+  const lines = [];
+  if (red) lines.push(`${red.name} saw red. Absolute scenes.`);
+  if (g > og) {
+    if (g - og >= 3) lines.push(`Won ${score}. Even ${worst.name} couldn't ruin this one.`);
+    if (topScorer.goals >= 2) lines.push(`Won ${score}. ${topScorer.name} carried with ${topScorer.goals} goals.`);
+    lines.push(`Won ${score}. ${best.name} (${best.rating.toFixed(1)}) did the heavy lifting.`);
+    if (worst.rating > 0) lines.push(`Won ${score} despite ${worst.name}'s ${worst.rating.toFixed(1)} rating.`);
+  } else if (g < og) {
+    if (og - g >= 3) lines.push(`Lost ${score}. Group chat is on mute tonight.`);
+    if (worst.rating > 0) lines.push(`Lost ${score}. ${worst.name} had a ${worst.rating.toFixed(1)}, just saying.`);
+    if (wasteful && wasteful.shots >= 3) lines.push(`Lost ${score}. ${wasteful.name}: ${wasteful.shots} shots, 0 goals.`);
+    if (g === 0) lines.push(`Lost ${score}. Not a single goal. Strikers on strike.`);
+  } else {
+    lines.push(`Drew ${score}. Nobody's happy, especially ${worst.name}.`);
+    if (wasteful && wasteful.shots >= 3) lines.push(`Drew ${score}. ${wasteful.name} missed ${wasteful.shots} chances to win it.`);
+  }
+  if (lines.length === 0) return null;
+  return lines[hashString(match?.matchId ?? match?.timestamp ?? score) % lines.length];
+}
+
+export function MatchRow({ match, clubId }) {
   const [expanded, setExpanded] = useState(false);
+  const roast = clubId ? matchRoast(match, clubId) : null;
   const clubsObj = match?.clubs || {};
   const ids = Object.keys(clubsObj);
   const home = clubsObj[ids[0]];
@@ -106,6 +169,7 @@ export function MatchRow({ match }) {
         </span>
         <span className="matchDate">{date}</span>
       </button>
+      {roast && <p className="matchRoast">{roast}</p>}
       {expanded && (
         <div style={{ marginTop: 6, marginBottom: 6 }}>
           {ids.map((id) => (
@@ -842,6 +906,55 @@ function PlayerCompare({ players }) {
   );
 }
 
+// --- Player card (FIFA-style) ---------------------------------------------
+// The card rating and face stats are worked out from the player's real
+// numbers (per-game output and success rates), scaled to 30-99.
+
+function scaleTo99(x, lo, hi) {
+  if (!Number.isFinite(x)) return 30;
+  return Math.round(Math.max(30, Math.min(99, 30 + ((x - lo) / (hi - lo)) * 69)));
+}
+
+function playerCardData(player) {
+  const n = (k) => Number(pick(player, [k])) || 0;
+  const games = n("gamesPlayed");
+  const per = (v) => (games ? v / games : 0);
+  const faces = [
+    ["FIN", scaleTo99(per(n("goals")), 0, 0.9)],
+    ["CRE", scaleTo99(per(n("assists")), 0, 0.75)],
+    ["PAS", scaleTo99(n("passSuccessRate"), 45, 92)],
+    ["SHO", scaleTo99(n("shotSuccessRate"), 15, 70)],
+    ["DEF", scaleTo99(n("tackleSuccessRate"), 15, 70)],
+    ["DIS", scaleTo99(-per(n("redCards")), -0.25, 0)],
+  ];
+  const faceAvg = faces.reduce((sum, [, v]) => sum + v, 0) / faces.length;
+  const ratingScore = scaleTo99(n("ratingAve"), 5.5, 9.2);
+  const ovr = Math.round(ratingScore * 0.6 + faceAvg * 0.4);
+  const tier = ovr >= 85 ? "special" : ovr >= 75 ? "gold" : ovr >= 60 ? "silver" : ovr >= 45 ? "bronze" : "wood";
+  return { ovr, tier, faces };
+}
+
+function PlayerCard({ player, name }) {
+  const { ovr, tier, faces } = playerCardData(player);
+  return (
+    <div className={`playerCard tier-${tier}`}>
+      <div className="pcTop">
+        <div className="pcOvr display">{ovr}</div>
+        <div className="pcPos">{positionLabel(player) ?? "—"}</div>
+      </div>
+      <div className="pcName display">{name}</div>
+      <div className="pcStats">
+        {faces.map(([label, value]) => (
+          <div className="pcStat" key={label}>
+            <span className="pcVal display">{value}</span>
+            <span className="pcLbl">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PlayerModal({ player, onClose }) {
   const name = pick(player, ["name", "proName"]) ?? "Player";
   // Picked once per open so the line doesn't change on re-render.
@@ -863,13 +976,12 @@ function PlayerModal({ player, onClose }) {
           </div>
         ) : (
           <>
-            <h2 className="clubName display" style={{ fontSize: 22, marginBottom: 2 }}>
-              {name}
-            </h2>
-            <div className="clubSub" style={{ marginBottom: 12 }}>
-              {positionLabel(player) ?? "Position unknown"}
-              {pick(player, ["proOverallStr"]) ? ` · OVR ${pick(player, ["proOverallStr"])}` : ""}
-            </div>
+            <PlayerCard player={player} name={name} />
+            {pick(player, ["proOverallStr"]) && (
+              <div className="clubSub" style={{ marginBottom: 12, textAlign: "center" }}>
+                In-game OVR {pick(player, ["proOverallStr"])}
+              </div>
+            )}
             <div className="statGridCompact">
               <Stat compact label="Games" value={player.gamesPlayed} />
               <Stat compact label="Goals" value={player.goals} />
@@ -890,6 +1002,81 @@ function PlayerModal({ player, onClose }) {
         )}
       </div>
     </div>
+  );
+}
+
+// --- Weekly awards -----------------------------------------------------------
+// Built from the per-player stats in recent matches. Uses the last 7 days if
+// there were any matches then, otherwise whatever recent matches EA returned.
+
+const WEEK_SECONDS = 7 * 24 * 60 * 60;
+
+export function WeeklyAwards({ matches, clubId }) {
+  if (!Array.isArray(matches) || matches.length === 0 || !clubId) return null;
+  const idStr = String(clubId);
+  const now = Date.now() / 1000;
+  const thisWeek = matches.filter((m) => Number(m?.timestamp) > now - WEEK_SECONDS);
+  const pool = thisWeek.length > 0 ? thisWeek : matches;
+
+  const totals = {};
+  for (const m of pool) {
+    for (const p of matchPlayers(m?.players?.[idStr])) {
+      const t = (totals[p.name] ??= { name: p.name, games: 0, goals: 0, assists: 0, shots: 0, ratingSum: 0, reds: 0 });
+      t.games += 1;
+      t.goals += p.goals;
+      t.assists += p.assists;
+      t.shots += p.shots;
+      t.ratingSum += p.rating;
+      t.reds += p.reds;
+    }
+  }
+  const players = Object.values(totals).map((t) => ({ ...t, rating: t.games ? t.ratingSum / t.games : 0 }));
+  if (players.length < 2) return null;
+
+  const awards = [];
+  const taken = new Set();
+  const give = (emoji, title, candidates, line) => {
+    const winner = candidates.find((p) => !taken.has(p.name)) ?? candidates[0];
+    if (!winner) return;
+    taken.add(winner.name);
+    awards.push({ emoji, title, name: winner.name, line: line(winner) });
+  };
+
+  const byRating = [...players].sort((a, b) => b.rating - a.rating);
+  give("👑", "Player of the Week", byRating, (p) =>
+    `${p.rating.toFixed(1)} avg rating, ${p.goals}G ${p.assists}A in ${p.games} games.`);
+  give("👻", "Ghost of the Week", [...byRating].reverse(), (p) =>
+    `${p.rating.toFixed(1)} avg rating. Was he even on the pitch?`);
+  give("🧈", "Bottler of the Week",
+    players.filter((p) => p.shots > p.goals).sort((a, b) => (b.shots - b.goals) - (a.shots - a.goals)),
+    (p) => `${p.shots} shots, ${p.goals} goal${p.goals === 1 ? "" : "s"}. Hands of butter, feet of butter.`);
+  give("🐷", "Ball Hog",
+    players.filter((p) => p.shots > 0).sort((a, b) => b.shots / (b.assists + 1) - a.shots / (a.assists + 1)),
+    (p) => `${p.shots} shots, ${p.assists} assist${p.assists === 1 ? "" : "s"}. Passing is for other people.`);
+  const hotheads = players.filter((p) => p.reds > 0).sort((a, b) => b.reds - a.reds);
+  if (hotheads.length > 0) {
+    give("🟥", "Hothead", hotheads, (p) => `${p.reds} red card${p.reds === 1 ? "" : "s"} this week. Calm down.`);
+  }
+
+  return (
+    <>
+      <p className="awardsNote">
+        {thisWeek.length > 0
+          ? `Based on ${pool.length} match${pool.length === 1 ? "" : "es"} in the last 7 days`
+          : `No matches in the last 7 days, based on the last ${pool.length}`}
+      </p>
+      <div className="shameGrid">
+        {awards.map((a) => (
+          <div className="awardCard" key={a.title}>
+            <div className="awardTitle">
+              {a.emoji} {a.title}
+            </div>
+            <div className="shameName">{a.name}</div>
+            <p className="shameLine">{a.line}</p>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
