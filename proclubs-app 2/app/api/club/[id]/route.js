@@ -6,6 +6,7 @@ import {
   getClubMatches,
   getPlayoffAchievements,
 } from "../../../../lib/ea";
+import { applyStatOverrides } from "../../../../lib/statOverrides";
 
 // Fetches every endpoint for a club in parallel and returns each as its
 // own { ok, data, error } section. One endpoint failing (EA's data isn't
@@ -46,6 +47,11 @@ export async function GET(request, { params }) {
       { error: info.error || "Couldn't load this club right now" },
       { status: 502 }
     );
+  }
+
+  // Temporary stat overrides - expire on their own, see lib/statOverrides.js.
+  if (members.ok && Array.isArray(members.data?.members)) {
+    members.data = { ...members.data, members: applyStatOverrides(members.data.members) };
   }
 
   return NextResponse.json({ info, overallStats, members, matches, playoffAchievements });
