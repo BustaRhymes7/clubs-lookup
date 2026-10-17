@@ -21,14 +21,24 @@ async function safeSection(promise) {
   }
 }
 
+// Lets the browser reuse a response for 30s (back/forward, quick reloads).
+const CACHE_HEADERS = { "Cache-Control": "private, max-age=30" };
+
 export async function GET(request, { params }) {
   const clubId = params.id;
   const { searchParams } = new URL(request.url);
   const platform = searchParams.get("platform");
   const matchType = searchParams.get("matchType") || "leagueMatch";
+  const only = searchParams.get("only");
 
   if (!clubId) {
     return NextResponse.json({ error: "club id is required" }, { status: 400 });
+  }
+
+  // Switching match type on the page only needs the matches, not the rest.
+  if (only === "matches") {
+    const matches = await safeSection(getClubMatches(clubId, matchType, platform));
+    return NextResponse.json({ matches }, { headers: CACHE_HEADERS });
   }
 
   const [info, overallStats, members, matches, playoffAchievements] = await Promise.all([
@@ -48,5 +58,8 @@ export async function GET(request, { params }) {
     );
   }
 
-  return NextResponse.json({ info, overallStats, members, matches, playoffAchievements });
+  return NextResponse.json(
+    { info, overallStats, members, matches, playoffAchievements },
+    { headers: CACHE_HEADERS }
+  );
 }

@@ -1341,50 +1341,6 @@ button {
   border-top: 1px solid var(--card-border);
 }
 
-/* --- Jidu and Sons easter egg banner --- */
-
-.easterBanner {
-  position: fixed;
-  top: 42%;
-  left: 0;
-  width: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 200;
-}
-
-.easterBannerText {
-  display: inline-block;
-  white-space: nowrap;
-  font-family: var(--font-display), sans-serif;
-  font-weight: 700;
-  font-size: 42px;
-  color: var(--accent);
-  transform: translateX(-100%);
-  animation: easterBannerTravel 3s linear forwards;
-}
-
-@keyframes easterBannerTravel {
-  0% {
-    transform: translateX(-100%);
-    opacity: 1;
-  }
-  85% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100vw);
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .easterBannerText {
-    animation: none;
-    opacity: 0;
-  }
-}
-
 /* --- Match roasts --- */
 
 .matchRoast {
@@ -1510,7 +1466,6 @@ button {
     radial-gradient(ellipse 80% 40% at 50% -10%, rgba(168, 85, 247, 0.22), transparent 70%),
     radial-gradient(ellipse 60% 30% at 50% 110%, rgba(255, 122, 26, 0.14), transparent 70%),
     var(--bg);
-  background-attachment: fixed;
   overflow-x: hidden;
 }
 
@@ -1674,6 +1629,7 @@ button {
 /* Ghosts rising from the bottom and swaying */
 .hfxGhost {
   position: absolute;
+  will-change: transform, opacity;
   bottom: -60px;
   font-size: 30px;
   opacity: 0;
@@ -1694,6 +1650,7 @@ button {
 /* Leaves, sweets and skulls drifting down */
 .hfxFall {
   position: absolute;
+  will-change: transform, opacity;
   top: -40px;
   font-size: 18px;
   opacity: 0;
@@ -1766,4 +1723,47 @@ button {
   :root[data-season="halloween"] .shameCard:hover {
     animation: none;
   }
+}
+
+/* --- Smoother feel: content fades in, taps give instant feedback --- */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.shell > * {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+.resultCard,
+.searchButton,
+.tabButton,
+.tabButtonActive,
+.chip,
+.chipActive,
+.matchRow,
+.favButton,
+.favButtonActive {
+  transition: transform 0.12s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.resultCard:active,
+.searchButton:active,
+.tabButton:active,
+.chip:active,
+.matchRow:active,
+.favButton:active,
+.favButtonActive:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .shell > * { animation: none; }
 }

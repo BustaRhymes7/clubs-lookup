@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getFavorites } from "../lib/favorites";
+import { prefetchClub } from "../lib/clubCache";
 import { PLATFORM_OPTIONS, ErrorNotice, toFriendlyError } from "./components/ClubDisplay";
 
 export default function Home() {
@@ -144,6 +145,8 @@ export default function Home() {
                 key={i}
                 href={clubHref(clubId, platform, name)}
                 className="resultCard"
+                onPointerEnter={() => prefetchClub(clubId, platform)}
+                onPointerDown={() => prefetchClub(clubId, platform)}
               >
                 <div>
                   <div className="resultName">{name}</div>
@@ -170,6 +173,8 @@ export default function Home() {
                 key={`${f.platform}:${f.clubId}`}
                 href={clubHref(f.clubId, f.platform, f.name)}
                 className="resultCard"
+                onPointerEnter={() => prefetchClub(f.clubId, f.platform)}
+                onPointerDown={() => prefetchClub(f.clubId, f.platform)}
               >
                 <div>
                   <div className="resultName">★ {f.name}</div>

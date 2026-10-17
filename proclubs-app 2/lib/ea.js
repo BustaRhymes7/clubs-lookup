@@ -40,7 +40,32 @@ function normalizePlatform(platform) {
   return PLATFORMS[platform] ? platform : DEFAULT_PLATFORM;
 }
 
-async function eaFetch(path) {
+// Short in-memory cache in front of EA. Several people opening the same
+// club within a minute (or one person switching tabs) only costs one EA
+// call, and identical requests already in flight share a single fetch.
+// Failed requests are never cached.
+const CACHE_TTL_MS = 60 * 1000;
+const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 500;
+const responseCache = new Map();
+
+function eaFetch(path, ttl = CACHE_TTL_MS) {
+  const now = Date.now();
+  const hit = responseCache.get(path);
+  if (hit && hit.expires > now) return hit.promise;
+
+  const promise = fetchFromEA(path);
+  responseCache.set(path, { expires: now + ttl, promise });
+  promise.catch(() => {
+    if (responseCache.get(path)?.promise === promise) responseCache.delete(path);
+  });
+  if (responseCache.size > MAX_CACHE_ENTRIES) {
+    responseCache.delete(responseCache.keys().next().value);
+  }
+  return promise;
+}
+
+async function fetchFromEA(path) {
   const url = `${BASE_URL}${path}`;
   const res = await fetch(url, { headers: EA_HEADERS, cache: "no-store" });
 
@@ -62,7 +87,7 @@ async function eaFetch(path) {
 export function searchClubs(clubName, platform = DEFAULT_PLATFORM) {
   const p = normalizePlatform(platform);
   const q = encodeURIComponent(clubName);
-  return eaFetch(`/allTimeLeaderboard/search?platform=${p}&clubName=${q}`);
+  return eaFetch(`/allTimeLeaderboard/search?platform=${p}&clubName=${q}`, SEARCH_CACHE_TTL_MS);
 }
 
 export function getClubInfo(clubId, platform = DEFAULT_PLATFORM) {

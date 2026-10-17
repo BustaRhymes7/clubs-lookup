@@ -15,7 +15,10 @@ export async function GET(request) {
     // EA returns an object keyed by clubId, not an array - normalize it
     // so the frontend can just .map() over it.
     const results = data && typeof data === "object" ? Object.values(data) : [];
-    return NextResponse.json({ results });
+    return NextResponse.json(
+      { results },
+      { headers: { "Cache-Control": "private, max-age=60" } }
+    );
   } catch (err) {
     return NextResponse.json({ error: err.message || "Search failed" }, { status: 502 });
   }

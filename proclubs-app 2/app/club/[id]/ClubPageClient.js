@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { isFavorited, toggleFavorite } from "../../../lib/favorites";
 import { getClubCrestUrl } from "../../../lib/ea";
+import { clubCacheKey, readClubCache, writeClubCache, fetchClub } from "../../../lib/clubCache";
 import {
   PLATFORM_OPTIONS,
   MATCH_TYPES,
@@ -44,7 +45,8 @@ export default function ClubPageClient({ clubId }) {
   const [fetchedAt, setFetchedAt] = useState(null);
   const [showRaw, setShowRaw] = useState(false);
   const [favorited, setFavorited] = useState(false);
-  const [showEasterBanner, setShowEasterBanner] = useState(false);
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  const latestMatchType = useRef("leagueMatch");
 
   function reportError(err) {
     setError(toFriendlyError(err.message));
@@ -52,19 +54,28 @@ export default function ClubPageClient({ clubId }) {
     setShowErrorDetails(false);
   }
 
+  // Shows cached data straight away if we have it (revisit, or a search
+  // result that was prefetched), then refreshes quietly in the background.
   async function loadClub(mt) {
-    setStatus("loading");
+    const cached = readClubCache(clubCacheKey(clubId, platform, mt));
     setError("");
+    if (cached) {
+      setClub(cached.data);
+      setFetchedAt(new Date(cached.savedAt));
+      setStatus("idle");
+    } else {
+      setStatus("loading");
+    }
     try {
-      const res = await fetch(`/api/club/${clubId}?matchType=${mt}&platform=${platform}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load club");
+      const data = await fetchClub(clubId, platform, mt);
       setClub(data);
       setFetchedAt(new Date());
       setStatus("idle");
     } catch (err) {
-      reportError(err);
-      setStatus("error");
+      if (!cached) {
+        reportError(err);
+        setStatus("error");
+      }
     }
   }
 
@@ -74,9 +85,32 @@ export default function ClubPageClient({ clubId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clubId, platform]);
 
-  function changeMatchType(mt) {
+  // Only the match list depends on the match type, so swap just that in
+  // and leave the rest of the page as it is.
+  async function changeMatchType(mt) {
     setMatchType(mt);
-    loadClub(mt);
+    latestMatchType.current = mt;
+    if (!club) return loadClub(mt);
+
+    const cached = readClubCache(clubCacheKey(clubId, platform, mt));
+    if (cached) {
+      setClub((prev) => ({ ...prev, matches: cached.data.matches }));
+      return;
+    }
+    setMatchesLoading(true);
+    try {
+      const data = await fetchClub(clubId, platform, mt, "matches");
+      if (latestMatchType.current !== mt) return;
+      setClub((prev) => {
+        const next = { ...prev, matches: data.matches };
+        writeClubCache(clubCacheKey(clubId, platform, mt), next);
+        return next;
+      });
+    } catch (err) {
+      if (latestMatchType.current === mt) reportError(err);
+    } finally {
+      if (latestMatchType.current === mt) setMatchesLoading(false);
+    }
   }
 
   const infoRecord = extractRecord(club?.info?.data, clubId);
@@ -90,14 +124,6 @@ export default function ClubPageClient({ clubId }) {
   const platformLabel = PLATFORM_OPTIONS.find((p) => p.value === platform)?.label;
   const form = computeForm(matchList, clubId);
 
-  useEffect(() => {
-    if (displayName && displayName.trim().toLowerCase() === "jidu and sons") {
-      setShowEasterBanner(true);
-      const t = setTimeout(() => setShowEasterBanner(false), 3200);
-      return () => clearTimeout(t);
-    }
-  }, [displayName]);
-
   function handleToggleFavorite() {
     toggleFavorite({ clubId, platform, name: displayName });
     setFavorited(isFavorited(clubId, platform));
@@ -105,12 +131,6 @@ export default function ClubPageClient({ clubId }) {
 
   return (
     <main className="shell">
-      {showEasterBanner && (
-        <div className="easterBanner" aria-hidden="true">
-          <span className="easterBannerText">Uselaiseeeee</span>
-        </div>
-      )}
-
       <button className="backLink" onClick={() => router.push("/")}>
         ← New search
       </button>
@@ -138,6 +158,7 @@ export default function ClubPageClient({ clubId }) {
                         src={crestUrl}
                         alt=""
                         className="clubCrest"
+                        decoding="async"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
@@ -294,7 +315,13 @@ export default function ClubPageClient({ clubId }) {
                       </button>
                     ))}
                   </div>
-                  {matchList && matchList.length > 0 ? (
+                  {matchesLoading ? (
+                    <div className="matchList">
+                      {[0, 1, 2].map((i) => (
+                        <div key={i} className="skeletonCard" style={{ height: 52 }} />
+                      ))}
+                    </div>
+                  ) : matchList && matchList.length > 0 ? (
                     <div className="matchList">
                       {matchList.map((m, i) => (
                         <MatchRow key={m?.matchId ?? i} match={m} clubId={clubId} />
