@@ -50,9 +50,21 @@ export const viewport = {
   initialScale: 1,
 };
 
+// Seasonal theme: Halloween runs until midnight on 1 November in the viewer's
+// own timezone, then the site goes back to normal by itself. Set on <html>
+// before first paint so there's no flash of the regular theme.
+const SEASON_SCRIPT = `try{if(new Date()<new Date(2026,10,1))document.documentElement.setAttribute("data-season","halloween")}catch(e){}`;
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`${spaceGrotesk.variable} ${inter.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SEASON_SCRIPT }} />
+      </head>
       <body>
         {children}
         <Footer />

@@ -1487,3 +1487,103 @@ button {
   font-weight: 600;
   opacity: 0.85;
 }
+
+/* --- Halloween theme ---
+   Switched on by the data-season attribute set in app/layout.js, which
+   turns itself off after 31 October. Delete this block and that script
+   once it's no longer needed. */
+
+:root[data-season="halloween"] {
+  --bg: #0e0a14;
+  --bg-elevated: #161020;
+  --card: #1b1426;
+  --card-border: #352542;
+  --text: #f7f1ff;
+  --dim: #a596b5;
+  --accent: #ff7a1a;
+  --accent-2: #a855f7;
+  --danger: #ff4d6d;
+}
+
+:root[data-season="halloween"] body {
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(168, 85, 247, 0.22), transparent 70%),
+    radial-gradient(ellipse 60% 30% at 50% 110%, rgba(255, 122, 26, 0.14), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+:root[data-season="halloween"] .searchButton {
+  color: #1a0a00;
+  box-shadow: 0 4px 16px rgba(255, 122, 26, 0.35);
+}
+
+:root[data-season="halloween"] .formW {
+  background: rgba(255, 122, 26, 0.18);
+}
+
+:root[data-season="halloween"] .playerCard.tier-special {
+  --pc-a: #ff7a1a;
+  --pc-b: #4c1d95;
+}
+
+/* Spooky banner at the top of every page */
+:root[data-season="halloween"] .shell::before {
+  content: "🎃  Spooky season edition  🦇";
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: rgba(255, 122, 26, 0.08);
+  border: 1px solid rgba(255, 122, 26, 0.35);
+  border-radius: 999px;
+  padding: 8px 14px;
+  margin-bottom: 18px;
+}
+
+/* Bats drifting across the top, a pumpkin peeking from the corner */
+:root[data-season="halloween"] body::before,
+:root[data-season="halloween"] body::after {
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+}
+
+:root[data-season="halloween"] body::before {
+  content: "🦇        🦇            🦇";
+  top: 14px;
+  left: 0;
+  white-space: pre;
+  font-size: 20px;
+  opacity: 0.55;
+  animation: halloweenBats 22s linear infinite;
+}
+
+:root[data-season="halloween"] body::after {
+  content: "🎃";
+  bottom: 96px;
+  right: 10px;
+  font-size: 34px;
+  opacity: 0.85;
+  animation: halloweenBob 3.5s ease-in-out infinite;
+}
+
+@keyframes halloweenBats {
+  from { transform: translateX(-60vw); }
+  to { transform: translateX(110vw); }
+}
+
+@keyframes halloweenBob {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-8px) rotate(6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-season="halloween"] body::before,
+  :root[data-season="halloween"] body::after {
+    animation: none;
+  }
+}
