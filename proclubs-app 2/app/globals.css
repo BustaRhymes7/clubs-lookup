@@ -1587,3 +1587,183 @@ button {
     animation: none;
   }
 }
+
+/* --- Halloween extra animations (app/components/HalloweenFX.js) --- */
+
+.hfx {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: -1;
+}
+
+/* Lightning: a quick double flash every 14s */
+.hfxLightning {
+  position: absolute;
+  inset: 0;
+  background: #d8c8ff;
+  opacity: 0;
+  animation: hfxLightning 14s linear infinite;
+}
+
+@keyframes hfxLightning {
+  0%, 89%, 91.5%, 93%, 100% { opacity: 0; }
+  90% { opacity: 0.16; }
+  92% { opacity: 0.1; }
+}
+
+/* Spider dangling from the top right */
+.hfxSpider {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: top center;
+  animation: hfxDangle 6s ease-in-out infinite;
+}
+
+.hfxThread {
+  width: 1px;
+  height: 70px;
+  background: rgba(247, 241, 255, 0.45);
+  animation: hfxThread 6s ease-in-out infinite;
+}
+
+.hfxSpiderBody {
+  font-size: 22px;
+  margin-top: -4px;
+}
+
+@keyframes hfxDangle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+
+@keyframes hfxThread {
+  0%, 100% { height: 70px; }
+  50% { height: 130px; }
+}
+
+/* A bat that flaps and swoops across the screen */
+.hfxFlapBat {
+  position: absolute;
+  top: 30%;
+  left: 0;
+  font-size: 26px;
+  animation: hfxSwoop 18s ease-in-out infinite, hfxFlap 0.25s ease-in-out infinite alternate;
+  opacity: 0;
+}
+
+@keyframes hfxSwoop {
+  0% { transform: translate(-10vw, 0); opacity: 0; }
+  5% { opacity: 0.9; }
+  25% { transform: translate(30vw, -12vh); }
+  45% { transform: translate(70vw, 8vh); opacity: 0.9; }
+  55% { transform: translate(110vw, -6vh); opacity: 0; }
+  100% { transform: translate(110vw, -6vh); opacity: 0; }
+}
+
+@keyframes hfxFlap {
+  from { scale: 1 1; }
+  to { scale: 1 0.6; }
+}
+
+/* Ghosts rising from the bottom and swaying */
+.hfxGhost {
+  position: absolute;
+  bottom: -60px;
+  font-size: 30px;
+  opacity: 0;
+  animation-name: hfxGhostRise;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes hfxGhostRise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.2; }
+  30% { transform: translate(24px, -30vh); }
+  50% { transform: translate(-20px, -55vh); opacity: 0.3; }
+  70% { transform: translate(18px, -80vh); opacity: 0.2; }
+  85%, 100% { transform: translate(0, -110vh); opacity: 0; }
+}
+
+/* Leaves, sweets and skulls drifting down */
+.hfxFall {
+  position: absolute;
+  top: -40px;
+  font-size: 18px;
+  opacity: 0;
+  animation-name: hfxFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes hfxFall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: 0.4; }
+  50% { transform: translate(30px, 55vh) rotate(180deg); }
+  90% { opacity: 0.35; }
+  100% { transform: translate(-20px, 110vh) rotate(360deg); opacity: 0; }
+}
+
+/* Flickering banner and club name, like a candle */
+:root[data-season="halloween"] .shell::before {
+  animation: hfxFlicker 5s linear infinite;
+}
+
+:root[data-season="halloween"] .clubName {
+  animation: hfxGlow 4s ease-in-out infinite;
+}
+
+@keyframes hfxFlicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: 0.45; }
+}
+
+@keyframes hfxGlow {
+  0%, 100% { text-shadow: 0 0 0 transparent; }
+  50% { text-shadow: 0 0 18px rgba(255, 122, 26, 0.55); }
+}
+
+/* Cards: Hall of Shame shivers, awards glow on hover */
+:root[data-season="halloween"] .shameCard:hover {
+  animation: hfxShiver 0.35s ease-in-out 2;
+}
+
+:root[data-season="halloween"] .awardCard {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+:root[data-season="halloween"] .awardCard:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 22px rgba(255, 122, 26, 0.35);
+}
+
+@keyframes hfxShiver {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px) rotate(-0.5deg); }
+  75% { transform: translateX(3px) rotate(0.5deg); }
+}
+
+/* Player card spins in when the popup opens */
+:root[data-season="halloween"] .playerCard {
+  animation: hfxCardIn 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes hfxCardIn {
+  from { transform: perspective(600px) rotateY(180deg) scale(0.6); opacity: 0; }
+  to { transform: perspective(600px) rotateY(0) scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-season="halloween"] .shell::before,
+  :root[data-season="halloween"] .clubName,
+  :root[data-season="halloween"] .playerCard,
+  :root[data-season="halloween"] .shameCard:hover {
+    animation: none;
+  }
+}

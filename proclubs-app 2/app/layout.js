@@ -1,6 +1,7 @@
 import { Space_Grotesk, Inter } from "next/font/google";
 import Footer from "./components/Footer";
 import CookieBanner from "./components/CookieBanner";
+import HalloweenFX from "./components/HalloweenFX";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -69,6 +70,7 @@ export default function RootLayout({ children }) {
         {children}
         <Footer />
         <CookieBanner />
+        <HalloweenFX />
       </body>
     </html>
   );
